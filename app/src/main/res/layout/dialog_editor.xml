@@ -1,48 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
-    android:layout_width="350dp"
-    android:layout_height="370dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
     android:layout_gravity="center"
-    android:background="@android:color/white"
-    android:paddingLeft="4dp"
-    android:paddingRight="4dp">
+    android:padding="16dp">
 
-    <TextView
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:textColor="@android:color/black"
-        android:text="X"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:layout_gravity="end"
-        android:gravity="center"
-        android:background="@drawable/cercle_background"
-        android:onClick="closeOrderDialog"
-        android:clickable="true"/>
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Create Project"
-        android:textSize="20sp"
+        android:textAppearance="?android:textAppearanceLarge"
+        android:textColor="@android:color/black"
         android:textStyle="bold"
         android:layout_marginBottom="16dp"/>
-    <EditText
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Project Name"/>
+        android:layout_height="wrap_content">
+        <EditText
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Project Name"
+            android:layout_marginBottom="8dp"/>
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_color_lens_black_24dp"
+            android:layout_gravity="center"
+            android:layout_marginLeft="8dp" />
+    </LinearLayout>
+
     <!--Category with autocomplete option from database-->
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Project Category" />
+        android:hint="Project Category"
+        android:layout_marginBottom="8dp"/>
 
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Estimated time in hours" />
+        android:hint="Estimated Time in Hours"
+        android:layout_marginBottom="8dp"/>
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Priority" />
+        android:hint="Priority (1, 2, 3, ...)" />
 </LinearLayout>

@@ -55,9 +55,11 @@
             android:id="@+id/new_project"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Add a New Project"
+            android:text="Add your First Project"
+            android:textAppearance="?android:textAppearanceLarge"
             android:layout_centerHorizontal="true"/>
         <android.support.design.widget.FloatingActionButton
+            android:id="@+id/floating_action_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/new_project"
