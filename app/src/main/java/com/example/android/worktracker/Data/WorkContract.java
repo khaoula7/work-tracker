@@ -71,7 +71,7 @@ public final class WorkContract {
         public static final String COLUMN_NAME = "name";
     }
 
-    public static final class WorkedTime implements BaseColumns{
+    public static final class WorkedTimeEntry implements BaseColumns{
         //Content URI to access category data in the provider
         public static final Uri CONTENT_WORKED_TIME_URI = Uri.withAppendedPath(BASE_CONTENT_URI, PATH_WORKED_TIME);
 
