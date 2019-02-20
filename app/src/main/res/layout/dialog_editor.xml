@@ -18,6 +18,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
         <EditText
+            android:id="@+id/project_name"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -32,18 +33,22 @@
     </LinearLayout>
 
     <!--Category with autocomplete option from database-->
-    <EditText
+    <AutoCompleteTextView
+        android:id="@+id/project_category"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Project Category"
+        android:completionThreshold="1"
         android:layout_marginBottom="8dp"/>
 
     <EditText
+        android:id="@+id/estimated_time"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Estimated Time in Hours"
         android:layout_marginBottom="8dp"/>
     <EditText
+        android:id="@+id/project_priority"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Priority (1, 2, 3, ...)" />

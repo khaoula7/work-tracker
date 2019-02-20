@@ -16,7 +16,6 @@ public final class WorkContract {
     //Possible
     public static final String PATH_PROJECTS ="project";
     public static final  String PATH_CATEGORIES = "category";
-    public static final String PATH_WORKED_TIME = "worked_time";
     /**
      * Inner class that defines constant values for the project table.
      * Each entry in the table represents a single project.
@@ -44,7 +43,10 @@ public final class WorkContract {
         public  static final String COLUMN_VICTORY_LINE = "victory_line";
         public  static final String COLUMN_ARCHIVED = "archived";
         public  static final String COLUMN_CATEGORY_ID = "category_id";
-        public  static final String COLUMN_TIME_ID = "time_id";
+        public static final String COLUMN_DAILY_TIME = "daily_time";
+        public static final String COLUMN_WEEKLY_TIME = "weekly_time";
+        public static final String COLUMN_MONTHLY_TIME = "monthly_time";
+        public static final String COLUMN_YEARLY_TIME = "yearly_time";
     }
 
     /**
@@ -69,28 +71,5 @@ public final class WorkContract {
         public static final String TABLE_NAME = "category";
         public static final String _ID = BaseColumns._ID;
         public static final String COLUMN_NAME = "name";
-    }
-
-    public static final class WorkedTimeEntry implements BaseColumns{
-        //Content URI to access category data in the provider
-        public static final Uri CONTENT_WORKED_TIME_URI = Uri.withAppendedPath(BASE_CONTENT_URI, PATH_WORKED_TIME);
-
-        //The MIME type of the CONTENT_CATEGORY_URI for a list of worked_time.
-        //"vnd.android.cursor.dir/com.example.android.worktracker/worked_time"
-        public static final String CONTENT_LIST_TYPE =
-                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_WORKED_TIME;
-
-        //The MIME type of the CONTENT_CATEGORY_URI for a single worked_time.
-        //"vnd.android.cursor.item/com.example.android.worktracker/worked_time"
-        public static final String CONTENT_ITEM_TYPE =
-                ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_WORKED_TIME;
-
-        //Defining CONSTANTS for worked_time table
-        public static final String TABLE_NAME = "worked_time";
-        public static final String _ID = BaseColumns._ID;
-        public static final String COLUMN_DAILY_TIME = "daily_time";
-        public static final String COLUMN_WEEKLY_TIME = "weekly_time";
-        public static final String COLUMN_MONTHLY_TIME = "monthly_time";
-        public static final String COLUMN_YEARLY_TIME = "yearly_time";
     }
 }

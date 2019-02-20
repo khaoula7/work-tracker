@@ -27,9 +27,11 @@ public class WorkDbHelper extends SQLiteOpenHelper {
                 + ProjectEntry.COLUMN_VICTORY_LINE + " DATE, "
                 + ProjectEntry.COLUMN_ARCHIVED + " INTEGER, "
                 + ProjectEntry.COLUMN_CATEGORY_ID + " INTEGER, "
-                + ProjectEntry.COLUMN_TIME_ID + " INTEGER NOT NULL, "
+                + ProjectEntry.COLUMN_DAILY_TIME + " INTEGER DEFAULT 0, "
+                + ProjectEntry.COLUMN_WEEKLY_TIME + " INTEGER DEFAULT 0, "
+                + ProjectEntry.COLUMN_MONTHLY_TIME + " INTEGER DEFAULT 0, "
+                + ProjectEntry.COLUMN_YEARLY_TIME + " INTEGER DEFAULT 0, "
                 + "FOREIGN KEY ( " + ProjectEntry.COLUMN_CATEGORY_ID + " ) REFERENCES " + CategoryEntry._ID
-                + ", FOREIGN KEY ( " + ProjectEntry.COLUMN_TIME_ID + " ) REFERENCES " + WorkedTimeEntry._ID
                 + " )";
 
         //SQL statement to create category table
@@ -37,19 +39,9 @@ public class WorkDbHelper extends SQLiteOpenHelper {
                 + CategoryEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
                 + CategoryEntry.COLUMN_NAME + " TEXT NOT NULL )";
 
-
-        //SQL statement to create project table
-        String SQL_CREATE_WORKED_TIME = "CREATE TABLE " + WorkedTimeEntry.TABLE_NAME + " ("
-                + WorkedTimeEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
-                + WorkedTimeEntry.COLUMN_DAILY_TIME + " INTEGER DEFAULT 0, "
-                + WorkedTimeEntry.COLUMN_WEEKLY_TIME + " INTEGER DEFAULT 0, "
-                + WorkedTimeEntry.COLUMN_MONTHLY_TIME + " INTEGER DEFAULT 0, "
-                + WorkedTimeEntry.COLUMN_YEARLY_TIME + " INTEGER DEFAULT 0 ) ";
-
         //Execute SQL Create statements
         db.execSQL(SQL_CREATE_PROJECT);
         db.execSQL(SQL_CREATE_CATEGORY);
-        db.execSQL(SQL_CREATE_WORKED_TIME);
     }
 
     @Override

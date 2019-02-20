@@ -5,24 +5,19 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp">
-        <TextView
-            android:id="@+id/priority"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Priority"
-            android:layout_alignParentRight="true"
-            android:layout_marginRight="8dp"/>
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp">
         <TextView
             android:id="@+id/month"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Month"
-            android:layout_toLeftOf="@id/priority"
-            android:layout_marginRight="16dp"/>
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="56dp"/>
         <TextView
             android:id="@+id/week"
             android:layout_width="wrap_content"
@@ -34,9 +29,10 @@
             android:id="@+id/today"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Today"
+            android:text="today"
             android:layout_toLeftOf="@id/week"
             android:layout_marginRight="16dp"/>
+
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
@@ -45,6 +41,11 @@
             android:layout_marginTop="8dp"/>
 
     </RelativeLayout>
+    <ListView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding = "8dp">
+    </ListView>
     <!--Empty View-->
     <RelativeLayout
         android:id="@+id/empty_view"

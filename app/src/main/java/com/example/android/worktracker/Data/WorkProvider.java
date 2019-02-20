@@ -28,10 +28,6 @@ public class WorkProvider extends ContentProvider {
     private static final int CATEGORY = 200;
     // URI matcher code of the content URI for a single category
     private static final int CATEGORY_ID = 201;
-    // URI matcher code of the content URI for the worked_time table
-    private static final int WORKED_TIME = 300;
-    // URI matcher code of the content URI for a single worked_time
-    private static final int WORKED_TIME_ID = 301;
 
     // UriMatcher object
     private static final UriMatcher sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
@@ -45,9 +41,6 @@ public class WorkProvider extends ContentProvider {
 
         sUriMatcher.addURI(CONTENT_AUTHORITY, PATH_CATEGORIES, CATEGORY);
         sUriMatcher.addURI(CONTENT_AUTHORITY, PATH_CATEGORIES + "/#", CATEGORY_ID);
-
-        sUriMatcher.addURI(CONTENT_AUTHORITY, PATH_WORKED_TIME, WORKED_TIME);
-        sUriMatcher.addURI(CONTENT_AUTHORITY, PATH_WORKED_TIME + "/#", WORKED_TIME_ID);
     }
 
     /**
@@ -96,10 +89,6 @@ public class WorkProvider extends ContentProvider {
                 return CategoryEntry.CONTENT_LIST_TYPE;
             case CATEGORY_ID:
                 return CategoryEntry.CONTENT_ITEM_TYPE;
-            case WORKED_TIME:
-                return WorkedTimeEntry.CONTENT_LIST_TYPE;
-            case WORKED_TIME_ID:
-                return WorkedTimeEntry.CONTENT_ITEM_TYPE;
             default:
                 throw new IllegalStateException("Unknown URI " + uri + " with match " + match);
         }
