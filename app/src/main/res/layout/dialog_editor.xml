@@ -39,6 +39,7 @@
         android:layout_height="wrap_content"
         android:hint="Project Category"
         android:completionThreshold="1"
+        android:dropDownHeight="100dp"
         android:layout_marginBottom="8dp"/>
 
     <EditText
@@ -52,4 +53,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Priority (1, 2, 3, ...)" />
+
+    <EditText
+        android:id="@+id/victory_line"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="VictoryLine"
+        android:clickable="true"
+        android:focusable="false"/>
 </LinearLayout>
