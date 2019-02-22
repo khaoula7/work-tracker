@@ -2,10 +2,13 @@ package com.example.android.worktracker;
 
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.DialogInterface;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -25,6 +28,8 @@ import java.util.Calendar;
 public class MainActivity extends AppCompatActivity {
     private FloatingActionButton fab;
     private View inflator;
+    //Flag to indicate the user typed a new category
+    private boolean newCategory;
     private static final String[] countries = {"Afghanistan", "Albania", "Algeria", "Andorra", "Angola"};
 
 
@@ -38,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                newCategory = true;
                 showEditorDialog();
             }
         });
@@ -56,20 +62,25 @@ public class MainActivity extends AppCompatActivity {
 
         //Access Alert Dialog Edit Texts
         final EditText editName = (EditText) inflator.findViewById(R.id.project_name);
-        final AutoCompleteTextView category = (AutoCompleteTextView) inflator.findViewById(R.id.project_category);
+        final AutoCompleteTextView editCategory = (AutoCompleteTextView) inflator.findViewById(R.id.project_category);
         final EditText editEstimatedTime = (EditText) inflator.findViewById(R.id.estimated_time);
-        final EditText editPriority = (EditText) findViewById(R.id.project_priority);
+        final EditText editPriority = (EditText) inflator.findViewById(R.id.project_priority);
         final EditText editVictoryLine = (EditText) inflator.findViewById(R.id.victory_line);
 
+
         /**Dealing with Category AutoCompleteTextView*/
+        //Sending a query to get all categories from category table
+        Cursor cursor = getContentResolver().query(CategoryEntry.CONTENT_CATEGORY_URI, null, null, null, null);
         //Power category Drop Down menu with names from category table
-        final ArrayAdapter<String> array = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_list_item_1, countries);
-        category.setAdapter(array);
-        category.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        CategoryCursorAdapter categoryAdapter = new CategoryCursorAdapter(MainActivity.this, cursor);
+        editCategory.setAdapter(categoryAdapter);
+        //The listener used to indicate the user has selected an option from the drop down menu
+        editCategory.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String item = parent.getItemAtPosition(position).toString();
-                Toast.makeText(MainActivity.this, item + " " +String.valueOf(position) + " "+ String.valueOf(id), Toast.LENGTH_LONG).show();
+                //User selected an existing category
+                newCategory = false;
+                //String item = parent.getItemAtPosition(position).toString();
             }
         });
         /**Dealing with victoryLine Edit Text to show date*/
@@ -83,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
                 myCalendar.set(Calendar.YEAR, year);
                 myCalendar.set(Calendar.MONTH, month);
                 myCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-                String victoryDate =  month + "/" + dayOfMonth + "/" + year ;
+                String victoryDate =  ++month + "/" + dayOfMonth + "/" + year ;
                 editVictoryLine.setText(victoryDate);
             }
         };
@@ -105,13 +116,30 @@ public class MainActivity extends AppCompatActivity {
                 dialog.show();
             }
         });
-        //Save Button
+        //Save Button: Save Project into project table, eventually save new category in category table
         builder.setPositiveButton("Save", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                //Save Project
-                Toast.makeText(MainActivity.this, category.getText().toString() , Toast.LENGTH_SHORT).show();
-                //saveProject();
+                //Extract information from UI Edit texts
+                String projectName = editName.getText().toString().trim();
+                String projectCategory = editCategory.getText().toString().trim();
+                int  projectEstimatedTime = Integer.parseInt(editEstimatedTime.getText().toString().trim());
+                int projectPriority = Integer.parseInt(editPriority.getText().toString().trim());
+                String projectVictoryLine = editVictoryLine.getText().toString().trim();
+                long category_ID = getCategoryId(newCategory, projectCategory);
+
+                //Put information into ContentValues object
+                ContentValues values = new ContentValues();
+                values.put(ProjectEntry.COLUMN_NAME, projectName);
+                //values.put(ProjectEntry.COLUMN_CATEGORY_ID, id);
+                values.put(ProjectEntry.COLUMN_ESTIMATED_TIME, projectEstimatedTime);
+                values.put(ProjectEntry.COLUMN_PRIORITY, projectPriority);
+                values.put(ProjectEntry.COLUMN_VICTORY_LINE, projectVictoryLine);
+
+                //Toast.makeText(MainActivity.this, projectCategory + " " + projectVictoryLine + " " + newCategory, Toast.LENGTH_SHORT).show();
+
+
+
             }
         });
         //Discard Button
@@ -125,26 +153,28 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Extract information from editor_dialog input texts and save the new project in database
+     * Get the _ID of a category from category Table
+     * @param newCategory: whether it is a new category to be inserted or an existing one
+     * @param projectCategory: name of the category
      */
-    private void saveProject() {
-        //Extract information from input text
-        EditText editName = (EditText) findViewById(R.id.project_name);
-        AutoCompleteTextView editCategory = (AutoCompleteTextView) findViewById(R.id.project_category);
-        EditText editEstimatedTime = (EditText) findViewById(R.id.estimated_time);
-        EditText editPriority = (EditText) findViewById(R.id.project_priority);
-        String projectName = editName.getText().toString().trim();
-        String projectCategory = editCategory.getText().toString().trim();
-        int  projectEstimatedTime = Integer.parseInt(editEstimatedTime.getText().toString().trim());
-        int projectPriority = Integer.parseInt(editPriority.getText().toString().trim());
-
-        //Put information into ContentValues object
-        ContentValues values = new ContentValues();
-        values.put(ProjectEntry.COLUMN_NAME, projectName);
-        //ProjectCategory
-        values.put(ProjectEntry.COLUMN_ESTIMATED_TIME, projectEstimatedTime);
-        values.put(ProjectEntry.COLUMN_PRIORITY, projectPriority);
-        //VictoryLine
-
+    private long getCategoryId(boolean newCategory, String projectCategory) {
+        long id = -1;
+        if(newCategory){
+            //Add new Category to table category
+            ContentValues values = new ContentValues();
+            values.put(CategoryEntry.COLUMN_NAME, projectCategory);
+            Uri uri = getContentResolver().insert(CategoryEntry.CONTENT_CATEGORY_URI, values);
+            id = ContentUris.parseId(uri);
+        }
+        else{
+            //Get id of existing category from Cursor
+        }
+        return id;
     }
+
+
+
+
+
+
 }

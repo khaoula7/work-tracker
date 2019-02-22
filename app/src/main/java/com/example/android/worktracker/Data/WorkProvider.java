@@ -2,13 +2,16 @@ package com.example.android.worktracker.Data;
 
 
 import android.content.ContentProvider;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.nfc.Tag;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.Selection;
 
 import java.net.URI;
 
@@ -52,10 +55,30 @@ public class WorkProvider extends ContentProvider {
         return true;
     }
 
-    @Nullable
     @Override
-    public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
-        return null;
+    public Cursor query(Uri uri, String[] projection, String selection,  String[] selectionArgs, String sortOrder) {
+        // Get readable database
+        SQLiteDatabase db = mWorkDbHelper.getReadableDatabase();
+        //The result of the query
+        Cursor cursor;
+        // Figure out if the URI matcher can match the URI to a specific code
+        int match = sUriMatcher.match(uri);
+        switch (match){
+            case CATEGORY :
+                //Perform database query on category table
+                cursor = db.query(CategoryEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
+                break;
+            case CATEGORY_ID:
+                // Define selection statement as "_ID=?"
+                selection = CategoryEntry._ID + "=?";
+                //Extract the ID from the URI and add it in selectionArgs.
+                selectionArgs = new String[]{String.valueOf(ContentUris.parseId(uri))};
+                cursor =db.query(CategoryEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
+                break;
+            default:
+                throw new IllegalArgumentException("Cannot query unknown URI " + uri);
+        }
+        return cursor;
     }
 
     @Nullable
@@ -91,6 +114,7 @@ public class WorkProvider extends ContentProvider {
                 return CategoryEntry.CONTENT_ITEM_TYPE;
             default:
                 throw new IllegalStateException("Unknown URI " + uri + " with match " + match);
+
         }
     }
 }
