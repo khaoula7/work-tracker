@@ -68,6 +68,22 @@
             android:src="@drawable/ic_add_black_24dp"
             app:fabSize="normal"
             android:layout_marginTop="16dp"/>
+        <Button
+            android:id="@+id/add_category"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Add category"
+            android:layout_below="@id/floating_action_button"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="16dp"/>
+        <TextView
+            android:id="@+id/category_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:hint="Category table Content"
+            android:layout_below="@id/add_category"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="16dp"/>
     </RelativeLayout>
 
 

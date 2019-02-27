@@ -12,6 +12,9 @@ import android.nfc.Tag;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.Selection;
+import android.text.TextUtils;
+import android.util.Log;
+import android.widget.Toast;
 
 import java.net.URI;
 
@@ -62,7 +65,7 @@ public class WorkProvider extends ContentProvider {
         //The result of the query
         Cursor cursor;
         // Figure out if the URI matcher can match the URI to a specific code
-        int match = sUriMatcher.match(uri);
+        final int match = sUriMatcher.match(uri);
         switch (match){
             case CATEGORY :
                 //Perform database query on category table
@@ -81,10 +84,38 @@ public class WorkProvider extends ContentProvider {
         return cursor;
     }
 
-    @Nullable
     @Override
     public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
-        return null;
+        final int match = sUriMatcher.match(uri);
+        switch(match){
+            case CATEGORY:
+                return insertCategory(uri, values);
+            case PROJECT:
+                return  insertProject(uri, values);
+            default:
+                throw new IllegalArgumentException("insertion is not supported for this uri: " + uri);
+        }
+    }
+
+    private Uri insertProject(Uri uri, ContentValues values) {
+        //Get a writable database
+        SQLiteDatabase db = mWorkDbHelper.getWritableDatabase();
+        long id = db.insert(ProjectEntry.TABLE_NAME, null, values);
+        if(id == -1){
+            Log.e(LOG_TAG, "Failed to insert row for " + uri);
+            return null;
+        }
+        return ContentUris.withAppendedId(uri, id);
+    }
+
+    private Uri insertCategory(Uri uri, ContentValues values) {
+        SQLiteDatabase db = mWorkDbHelper.getWritableDatabase();
+        long id = db.insert(CategoryEntry.TABLE_NAME, null, values);
+        if(id == -1){
+            Log.e(LOG_TAG, "Failed to insert row for " + uri);
+            return null;
+        }
+        return ContentUris.withAppendedId(uri, id);
     }
 
     @Override

@@ -6,37 +6,50 @@ import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.Button;
+import android.widget.CursorAdapter;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.FilterQueryProvider;
+import android.widget.SimpleCursorAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.android.worktracker.Data.WorkContract.*;
+import com.example.android.worktracker.Data.WorkDbHelper;
 
 import java.util.Calendar;
 
+import static java.lang.Math.toIntExact;
+
 public class MainActivity extends AppCompatActivity {
+    private static final String LOG_TAG = MainActivity.class.getSimpleName();
     private FloatingActionButton fab;
     private View inflator;
+    private SimpleCursorAdapter mCategoryAdapter;
     //Flag to indicate the user typed a new category
     private boolean newCategory;
-    private static final String[] countries = {"Afghanistan", "Albania", "Algeria", "Andorra", "Angola"};
-
+    private int categoryId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
 
         //The click on Floating Action button will open editor_dialog
         fab = (FloatingActionButton) findViewById(R.id.floating_action_button);
@@ -44,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 newCategory = true;
+                categoryId = -1;
                 showEditorDialog();
             }
         });
@@ -59,34 +73,148 @@ public class MainActivity extends AppCompatActivity {
         inflator = getLayoutInflater().inflate(R.layout.dialog_editor, null);
         //set the layout for the AlertDialog
         builder.setView(inflator);
-
+        builder.setPositiveButton("Save", null);
+        builder.setNegativeButton("Cancel", null);
+        final AlertDialog alertDialog = builder.create();
         //Access Alert Dialog Edit Texts
         final EditText editName = (EditText) inflator.findViewById(R.id.project_name);
         final AutoCompleteTextView editCategory = (AutoCompleteTextView) inflator.findViewById(R.id.project_category);
         final EditText editEstimatedTime = (EditText) inflator.findViewById(R.id.estimated_time);
         final EditText editPriority = (EditText) inflator.findViewById(R.id.project_priority);
         final EditText editVictoryLine = (EditText) inflator.findViewById(R.id.victory_line);
+        //Category AutoCompletion
+        autoCompleteCategory(editCategory);
+        //Calendar object for VictoryLine Edit Text whose calendar fields have been initialized with the current date and time
+        showCalendar(editVictoryLine);
+        //Define Positive and Negative buttons
+        alertDialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialog) {
+                //Save Button: Save Project into project table, eventually save new category in category table
+                Button positiveButton = ((AlertDialog) dialog).getButton(DialogInterface.BUTTON_POSITIVE);
+                positiveButton.setOnClickListener(new View.OnClickListener(){
+                    @Override
+                    public void onClick(View v) {
+                        //Put information into a ContentValues object
+                        ContentValues values = new ContentValues();
+                        //Get project name
+                        String projectName = editName.getText().toString().trim();
+                        if (TextUtils.isEmpty(projectName)) {
+                            editName.setError("Project Name cannot be blank");
+                        }
+                        //Get project category
+                        String projectCategory = editCategory.getText().toString().trim();
+                        //Get project estimated time
+                        String estimatedTimeString = editEstimatedTime.getText().toString().trim();
+                        if(!TextUtils.isEmpty(estimatedTimeString)){
+                            int projectEstimatedTime = Integer.parseInt(estimatedTimeString);
+                            values.put(ProjectEntry.COLUMN_ESTIMATED_TIME, projectEstimatedTime);
+                        }
+                        //Get project priority
+                        String priorityString = editPriority.getText().toString().trim();
+                        if(!TextUtils.isEmpty(priorityString)){
+                            int projectPriority = Integer.parseInt(priorityString);
+                            values.put(ProjectEntry.COLUMN_PRIORITY, projectPriority);
+                        }
+                        //Get project VictoryLine
+                        String projectVictoryLine = editVictoryLine.getText().toString().trim();
+                        //If user enters a new category then insert it in category table
+                        if (newCategory) {
+                            categoryId = insertCategory(projectCategory);
+                        }
+                        values.put(ProjectEntry.COLUMN_NAME, projectName);
+                        values.put(ProjectEntry.COLUMN_CATEGORY_ID, categoryId);
+                        values.put(ProjectEntry.COLUMN_VICTORY_LINE, projectVictoryLine);
+                        Uri uri = getContentResolver().insert(ProjectEntry.CONTENT_PROJECT_URI, values);
+                        if(uri == null){
+                            Toast.makeText(MainActivity.this, "Error with inserting project", Toast.LENGTH_SHORT).show();
+                        }else{
+                            Toast.makeText(MainActivity.this, "Project inserted successfully", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+                //Cancel Button
+                Button NegativeButton = ((AlertDialog) dialog).getButton(DialogInterface.BUTTON_NEGATIVE);
+                NegativeButton.setOnClickListener(new View.OnClickListener(){
+                    @Override
+                    public void onClick(View v) {
+                        //Close the Alert Dialog
+                        alertDialog.dismiss();
+                    }
+                });
+            }
+        });
+        alertDialog.show();
+    }
 
+    /**
+     *Filters category names that starts with characters typed by user in AutoCompleteTextView
+     * @param str: filter characters
+     * @return cursor that contains the result of filter
+     */
+    private Cursor getCursor(CharSequence str) {
+        String selection = CategoryEntry.COLUMN_NAME + " LIKE ?";
+        String[] selectionArgs = {str + "%"};
+        return getContentResolver().query(CategoryEntry.CONTENT_CATEGORY_URI, null, selection, selectionArgs, null);
+    }
 
-        /**Dealing with Category AutoCompleteTextView*/
+    /**
+     * Insert a new Category in category Table
+     * @param projectCategory: name of the category
+     */
+    private int insertCategory(String projectCategory) {
+            //Add new Category to table category
+            ContentValues values = new ContentValues();
+            values.put(CategoryEntry.COLUMN_NAME, projectCategory);
+            Uri uri = getContentResolver().insert(CategoryEntry.CONTENT_CATEGORY_URI, values);
+            long id = ContentUris.parseId(uri);
+            //Safely cast long to int
+           return (int) id;
+    }
+
+    /**
+     * AutoComplete category from a cursor
+     * @param editCategory: AutoComplete TextView
+     */
+    void autoCompleteCategory(final AutoCompleteTextView editCategory){
         //Sending a query to get all categories from category table
-        Cursor cursor = getContentResolver().query(CategoryEntry.CONTENT_CATEGORY_URI, null, null, null, null);
+        final Cursor cursor = getContentResolver().query(CategoryEntry.CONTENT_CATEGORY_URI, null,
+                null, null, null);
         //Power category Drop Down menu with names from category table
-        CategoryCursorAdapter categoryAdapter = new CategoryCursorAdapter(MainActivity.this, cursor);
-        editCategory.setAdapter(categoryAdapter);
-        //The listener used to indicate the user has selected an option from the drop down menu
+        mCategoryAdapter = new SimpleCursorAdapter(MainActivity.this, android.R.layout.simple_list_item_1,
+                null, new String []{CategoryEntry.COLUMN_NAME}, new int[]{android.R.id.text1}, 0);
+        editCategory.setAdapter(mCategoryAdapter);
+
+        // FilterQueryProvider is an interface. Its runQuery callback is executed every time we change something in AutoCompleteTextView.
+        mCategoryAdapter.setFilterQueryProvider(new FilterQueryProvider() {
+            public Cursor runQuery(CharSequence str) {
+                return getCursor(str);
+            } });
+        //when an item appears in Drop Down, convertToString() is called.
+        mCategoryAdapter.setCursorToStringConverter(new SimpleCursorAdapter.CursorToStringConverter() {
+            public CharSequence convertToString(Cursor cur) {
+                int nameIndex = cur.getColumnIndex(CategoryEntry.COLUMN_NAME);
+                //Toast.makeText(MainActivity.this, cur.getString(nameIndex), Toast.LENGTH_SHORT).show();
+                return cur.getString(nameIndex);
+
+            }});
+        /*The listener used to indicate the user has selected an option from the drop down menu*/
         editCategory.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 //User selected an existing category
                 newCategory = false;
-                //String item = parent.getItemAtPosition(position).toString();
+                categoryId = (int) id;
             }
         });
-        /**Dealing with victoryLine Edit Text to show date*/
-        //returns a Calendar object whose calendar fields have been initialized with the current date and time
+    }
+
+    /**
+     * Shows a date dialog for the user to select the VictoryLine date
+     * @param editVictoryLine: Edit Text
+     */
+    void showCalendar(final EditText editVictoryLine){
         final Calendar myCalendar = Calendar.getInstance();
-        //The listener used to indicate the user has finished selecting a date
         final DatePickerDialog.OnDateSetListener dateSetListener = new DatePickerDialog.OnDateSetListener() {
             @Override
             public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
@@ -99,7 +227,7 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         //The click in VictoryLine Edit Text shows a Date Picker Dialog
-        editVictoryLine.setOnClickListener(new View.OnClickListener() {
+            editVictoryLine.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //Getting year, month and day from the Calendar
@@ -116,65 +244,5 @@ public class MainActivity extends AppCompatActivity {
                 dialog.show();
             }
         });
-        //Save Button: Save Project into project table, eventually save new category in category table
-        builder.setPositiveButton("Save", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                //Extract information from UI Edit texts
-                String projectName = editName.getText().toString().trim();
-                String projectCategory = editCategory.getText().toString().trim();
-                int  projectEstimatedTime = Integer.parseInt(editEstimatedTime.getText().toString().trim());
-                int projectPriority = Integer.parseInt(editPriority.getText().toString().trim());
-                String projectVictoryLine = editVictoryLine.getText().toString().trim();
-                long category_ID = getCategoryId(newCategory, projectCategory);
-
-                //Put information into ContentValues object
-                ContentValues values = new ContentValues();
-                values.put(ProjectEntry.COLUMN_NAME, projectName);
-                //values.put(ProjectEntry.COLUMN_CATEGORY_ID, id);
-                values.put(ProjectEntry.COLUMN_ESTIMATED_TIME, projectEstimatedTime);
-                values.put(ProjectEntry.COLUMN_PRIORITY, projectPriority);
-                values.put(ProjectEntry.COLUMN_VICTORY_LINE, projectVictoryLine);
-
-                //Toast.makeText(MainActivity.this, projectCategory + " " + projectVictoryLine + " " + newCategory, Toast.LENGTH_SHORT).show();
-
-
-
-            }
-        });
-        //Discard Button
-        builder.setNegativeButton("Discard", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                //Close the Alert Dialog
-                dialog.dismiss(); }
-        });
-        builder.show();
     }
-
-    /**
-     * Get the _ID of a category from category Table
-     * @param newCategory: whether it is a new category to be inserted or an existing one
-     * @param projectCategory: name of the category
-     */
-    private long getCategoryId(boolean newCategory, String projectCategory) {
-        long id = -1;
-        if(newCategory){
-            //Add new Category to table category
-            ContentValues values = new ContentValues();
-            values.put(CategoryEntry.COLUMN_NAME, projectCategory);
-            Uri uri = getContentResolver().insert(CategoryEntry.CONTENT_CATEGORY_URI, values);
-            id = ContentUris.parseId(uri);
-        }
-        else{
-            //Get id of existing category from Cursor
-        }
-        return id;
-    }
-
-
-
-
-
-
 }

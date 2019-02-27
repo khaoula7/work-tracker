@@ -13,6 +13,7 @@ public class WorkDbHelper extends SQLiteOpenHelper {
 
     //Constructor
     public WorkDbHelper(Context context){
+
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
@@ -22,11 +23,11 @@ public class WorkDbHelper extends SQLiteOpenHelper {
         String SQL_CREATE_PROJECT = "CREATE TABLE " + ProjectEntry.TABLE_NAME + " ("
                 + ProjectEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
                 + ProjectEntry.COLUMN_NAME + " TEXT NOT NULL, "
-                + ProjectEntry.COLUMN_PRIORITY + " INTEGER, "
-                + ProjectEntry.COLUMN_ESTIMATED_TIME + " INTEGER, "
+                + ProjectEntry.COLUMN_PRIORITY + " INTEGER DEFAULT 0, "
+                + ProjectEntry.COLUMN_ESTIMATED_TIME + " INTEGER DEFAULT 0, "
                 + ProjectEntry.COLUMN_VICTORY_LINE + " DATE, "
-                + ProjectEntry.COLUMN_ARCHIVED + " INTEGER, "
-                + ProjectEntry.COLUMN_CATEGORY_ID + " INTEGER, "
+                + ProjectEntry.COLUMN_ARCHIVED + " INTEGER DEFAULT 0, "
+                + ProjectEntry.COLUMN_CATEGORY_ID + " INTEGER DEFAULT 0, "
                 + ProjectEntry.COLUMN_DAILY_TIME + " INTEGER DEFAULT 0, "
                 + ProjectEntry.COLUMN_WEEKLY_TIME + " INTEGER DEFAULT 0, "
                 + ProjectEntry.COLUMN_MONTHLY_TIME + " INTEGER DEFAULT 0, "
@@ -46,5 +47,8 @@ public class WorkDbHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        db.execSQL("DROP TABLE IF EXISTS " + ProjectEntry.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + CategoryEntry.TABLE_NAME);
+        onCreate(db);
     }
 }
