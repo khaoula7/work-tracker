@@ -2,9 +2,12 @@ package com.example.android.worktracker;
 
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
+import android.app.LoaderManager;
 import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.CursorLoader;
 import android.content.DialogInterface;
+import android.content.Loader;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
@@ -25,10 +28,12 @@ import android.widget.CursorAdapter;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.FilterQueryProvider;
+import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.android.worktracker.Data.WorkContract;
 import com.example.android.worktracker.Data.WorkContract.*;
 import com.example.android.worktracker.Data.WorkDbHelper;
 
@@ -36,21 +41,21 @@ import java.util.Calendar;
 
 import static java.lang.Math.toIntExact;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
     private FloatingActionButton fab;
     private View inflator;
     private SimpleCursorAdapter mCategoryAdapter;
+    private WorkCursorAdapter mWorkAdapter;
     //Flag to indicate the user typed a new category
     private boolean newCategory;
     private int categoryId;
+    private static final int WORK_LOADER = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-
         //The click on Floating Action button will open editor_dialog
         fab = (FloatingActionButton) findViewById(R.id.floating_action_button);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -61,6 +66,16 @@ public class MainActivity extends AppCompatActivity {
                 showEditorDialog();
             }
         });
+        //Find List View and Empty View
+        ListView listView = (ListView) findViewById(R.id.list_view);
+        View emptyView = findViewById(R.id.empty_view);
+        //Show Empty View when List View has 0 items
+        listView.setEmptyView(emptyView);
+        //Instanciate the Cursor Adapter. There is no data yet (until the loader finishes) so pass in null for the cursor.
+        mWorkAdapter = new WorkCursorAdapter(this, null);
+        listView.setAdapter(mWorkAdapter);
+        //Initialize and activate loader
+        getLoaderManager().initLoader(WORK_LOADER, null, this);
     }
 
     /**
@@ -244,5 +259,48 @@ public class MainActivity extends AppCompatActivity {
                 dialog.show();
             }
         });
+    }
+
+    /**
+     * Create loader and define data to be queried from Content Provider
+     * @param id
+     * @param args
+     * @return
+     */
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        //Define a projection that specifies the columns from the projection we care about.
+        String [] projection = {
+                ProjectEntry._ID,
+                ProjectEntry.COLUMN_NAME,
+                ProjectEntry.COLUMN_CATEGORY_ID,
+                ProjectEntry.COLUMN_DAILY_TIME,
+                ProjectEntry.COLUMN_WEEKLY_TIME,
+                ProjectEntry.COLUMN_MONTHLY_TIME
+        };
+        //Send Query to the Content Provider
+        return new CursorLoader(this, ProjectEntry.CONTENT_PROJECT_URI, projection, null, null, null);
+    }
+
+    /**
+     * Called when loader has finished loading data and has a cursor
+     * @param loader
+     * @param data: updated cursor
+     */
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        //Update Work Cursor Adapter with this new cursor containing updated project data
+        mWorkAdapter.swapCursor(data);
+    }
+
+    /**
+     * Called when loader is being destroyed
+     * @param loader
+     */
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        //Data needs to be deleted
+        mWorkAdapter.swapCursor(null);
     }
 }

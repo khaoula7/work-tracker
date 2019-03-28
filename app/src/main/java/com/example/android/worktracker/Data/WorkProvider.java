@@ -78,9 +78,23 @@ public class WorkProvider extends ContentProvider {
                 selectionArgs = new String[]{String.valueOf(ContentUris.parseId(uri))};
                 cursor =db.query(CategoryEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
                 break;
+            case PROJECT:
+                //Perform database query on category table
+                cursor = db.query(ProjectEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
+                break;
+            case PROJECT_ID:
+                // Define selection statement as "_ID=?"
+                selection = ProjectEntry._ID + "=?";
+                //Extract the ID from the URI and add it in selectionArgs.
+                selectionArgs = new String[]{String.valueOf(ContentUris.parseId(uri))};
+                cursor =db.query(ProjectEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
+                break;
             default:
                 throw new IllegalArgumentException("Cannot query unknown URI " + uri);
         }
+        //Specify the uri to watch If the data at this URI changes, then we know we need to update the cursor.
+        cursor.setNotificationUri(getContext().getContentResolver(), uri);
+
         return cursor;
     }
 
@@ -95,16 +109,21 @@ public class WorkProvider extends ContentProvider {
             default:
                 throw new IllegalArgumentException("insertion is not supported for this uri: " + uri);
         }
+
     }
 
     private Uri insertProject(Uri uri, ContentValues values) {
         //Get a writable database
         SQLiteDatabase db = mWorkDbHelper.getWritableDatabase();
+        //Call database insert method
         long id = db.insert(ProjectEntry.TABLE_NAME, null, values);
         if(id == -1){
             Log.e(LOG_TAG, "Failed to insert row for " + uri);
             return null;
         }
+        //Notify all listeners that the data has changed for the pet content URI
+        getContext().getContentResolver().notifyChange(uri, null);
+
         return ContentUris.withAppendedId(uri, id);
     }
 
@@ -115,16 +134,23 @@ public class WorkProvider extends ContentProvider {
             Log.e(LOG_TAG, "Failed to insert row for " + uri);
             return null;
         }
+        //Notify all listeners that the data has changed for the pet content URI
+        getContext().getContentResolver().notifyChange(uri, null);
+
         return ContentUris.withAppendedId(uri, id);
     }
 
     @Override
     public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
+        //Notify all listeners that the data has changed for the pet content URI
+        getContext().getContentResolver().notifyChange(uri, null);
         return 0;
     }
 
     @Override
     public int update(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
+        //Notify all listeners that the data has changed for the pet content URI
+        getContext().getContentResolver().notifyChange(uri, null);
         return 0;
     }
 

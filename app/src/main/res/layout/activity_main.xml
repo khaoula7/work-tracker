@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:padding="8dp"
     tools:context=".MainActivity">
 
     <RelativeLayout
@@ -38,13 +39,15 @@
             android:layout_height="1dp"
             android:layout_below="@id/today"
             android:background="@android:color/darker_gray"
-            android:layout_marginTop="8dp"/>
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"/>
 
     </RelativeLayout>
     <ListView
+        android:id="@+id/list_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding = "8dp">
+        android:layout_marginTop="36dp">
     </ListView>
     <!--Empty View-->
     <RelativeLayout
@@ -68,23 +71,16 @@
             android:src="@drawable/ic_add_black_24dp"
             app:fabSize="normal"
             android:layout_marginTop="16dp"/>
-        <Button
-            android:id="@+id/add_category"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Add category"
-            android:layout_below="@id/floating_action_button"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="16dp"/>
-        <TextView
-            android:id="@+id/category_tv"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            tools:hint="Category table Content"
-            android:layout_below="@id/add_category"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="16dp"/>
     </RelativeLayout>
-
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:src="@drawable/ic_add_black_24dp"
+        app:fabSize="normal"
+        android:layout_marginTop="16dp"
+        android:visibility="visible"/>
 
 </RelativeLayout>

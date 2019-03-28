@@ -3,23 +3,29 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="8dp">
+    android:layout_marginBottom="16dp"
+    android:layout_marginLeft="8dp">
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical">
         <TextView
+            android:id="@+id/name_tv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             tools:hint="Project Name"
-            android:layout_marginBottom="8dp"/>
+            android:layout_marginBottom="16dp"
+            android:paddingTop="8dp"/>
         <TextView
+            android:id="@+id/category_tv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            tools:hint="Category Name"/>
+            tools:hint="Category Name"
+            android:paddingBottom="8dp"/>
     </LinearLayout>
 
     <ImageView
+        android:id="@+id/play_img"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginRight="8dp"
